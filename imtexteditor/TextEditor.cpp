@@ -1877,6 +1877,13 @@ void TextEditor::Backspace()
 			while (cindex < line.size() && cend-- > cindex)
 			{
 				u.mRemoved += line[cindex].mChar;
+
+				// Special case tab deleting to prevent character interweaving
+				if (u.mRemoved == "\t" && cindex != line.size() - 1)
+				{
+					u.mRemovedStart.mColumn -= std::max(0, (mTabSize - 1));
+					mState.mCursorPosition.mColumn -= std::max(0, (mTabSize - 1));
+				}
 				line.erase(line.begin() + cindex);
 			}
 		}
