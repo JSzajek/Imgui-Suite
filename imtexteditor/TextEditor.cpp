@@ -757,7 +757,7 @@ void TextEditor::HandleKeyboardInputs()
 			Cut();
 		else if (ctrl && !shift && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_A)))
 			SelectAll();
-		else if (!IsReadOnly() && !ctrl && !shift && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Enter)))
+		else if (!IsReadOnly() && !ctrl && !shift && !alt && (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Enter)) || ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_KeyPadEnter))))
 			EnterCharacter('\n', false);
 		else if (!IsReadOnly() && !ctrl && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Tab)))
 			EnterCharacter('\t', shift);
@@ -1877,6 +1877,13 @@ void TextEditor::Backspace()
 			while (cindex < line.size() && cend-- > cindex)
 			{
 				u.mRemoved += line[cindex].mChar;
+
+				// Special case tab deleting to prevent character interweaving
+				if (u.mRemoved == "\t" && cindex != line.size() - 1)
+				{
+					u.mRemovedStart.mColumn -= std::max(0, (mTabSize - 1));
+					mState.mCursorPosition.mColumn -= std::max(0, (mTabSize - 1));
+				}
 				line.erase(line.begin() + cindex);
 			}
 		}
